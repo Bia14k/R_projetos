@@ -1,0 +1,369 @@
+---
+title: "Estrutura Básica do RMarkdown"
+author: "Fernanda Fiel Peres"
+date: "21/07/2020"
+output: html_document
+---
+
+# Elementos básicos do RMarkdown
+  
+## Títulos
+  
+Os títulos são definidos pela presença e pela quantidade de #.  
+Um único # define o título 1 (o maior na hierarquia), dois # definem o título 2, e assim sucessivamente.  
+`# Título 1`  
+`## Título 2`  
+  
+  
+## Formatação
+* Para que duas frases fiquem em linhas separadas, dê dois espaços entre elas;
+* Os dois espaços funcionam também para deixar uma linha em branco;
+* Para deixar uma palavra em **negrito**, coloque-a entre quatro asteriscos: `**negrito**`
+* Para deixar uma palavra em *itálico*, coloque-a entre dois asteriscos: `*itálico*`
+* Para deixar caracteres ^sobrescritos^, coloque-os entre acentos circunflexos: `^1^`
+* Para deixar caracteres ~subscritos~, coloque-os entre til: `~1~`
+* Para destacar um termo como `código`, coloque-o entre crases (backticks): `` `código` ``
+* Para criar uma citação (quote), escreva o texto após um sinal de maior: `> Citação`
+
+> Citação
+  
+  
+  
+## Adicionando links, imagens e notas de rodapé
+
+### Adicionando links:
+`[Nome do Link](Endereço do Link)`  
+  
+**Exemplo:**  
+[Canal do YouTube](https://youtube.com/c/FernandaPeres)
+  
+  
+### Adicionando imagens
+`![Legenda](Endereço da Imagem)`  
+  
+**Exemplo:**  
+![Logo do RMarkdown](https://miro.medium.com/max/600/1*sCJzUnDilAuvGrlllJeXKw.jpeg){ width=35% }
+
+### Criando notas de rodapé (clicáveis)
+
+Há duas opções:  
+  
+1. Escrever ao final do texto `[^1]` e então (pode ser logo abaixo, ou depois) escrever a nota de rodapé:  
+"Essa informação não é um consenso `[^1]`"  
+`[^1]: Esta é uma nota de rodapé.`  
+  
+  
+2. Colocar a informação da nota de rodapé no meio do texto, e o R numerará automaticamente:  
+"Essa informação não é um consenso `^[Esta é uma nota de rodapé]`"
+  
+  
+**Exemplo:**  
+  
+O RMarkdown é uma ferramenta excelente para documentar seus códigos e apresentar os resultados. As muitas funcionalidades dele são descritas detalhadamente no livro R Markdown: The Definitive Guide [^1].
+
+[^1]: R Markdown: The Definitive Guide. Yihui Xie, J. J. Allaire, Garrett Grolemund. Disponível em: <https://bookdown.org/yihui/rmarkdown/>
+
+
+## Criando listas
+
+### Listas não-ordenadas:
+Usamos asterisco para criar o item, sinal de adição para criar o subitem e traço para criar o sub-subitem. A cada nível devem ser dados 4 espaços antes.  
+`* Item`  
+`    + Subitem`  
+`        - Sub-subitem`
+  
+**Exemplo:**
+  
+* Item 1
+    + Subitem 1
+    + Subitem 2
+        - Sub-subitem 1
+* Item 2
+* Item 3
+  
+  
+### Listas ordenadas:
+`1. Item`  
+`    i) Subitem`  
+`        A. Sub-subitem`
+  
+**Exemplo:**
+  
+1. Item 1
+    i) Subitem 1
+    ii) Subitem 2  
+        A. Sub-subitem 1
+2. Item 2
+3. Item 3
+
+
+## Adicionando equações
+As equações no RMarkdown são escritas com a linguagem LaTeX.  
+  
+Para que a equação apareça no meio do texto, devemos escrevê-la entre dois cifrões: `$equação$`
+  
+"Esse cálculo é realizado pela equação $\sum_{i = 1} (x_i - \mu)^2$, como comentado no item anterior."
+  
+Para que a equação apareça no formato destacado (display), deve ser colocada entre quatro cifrões:  
+`$$equação$$`
+  
+Esse cálculo é realizado através da equação abaixo:
+$$\sum_{i=1}^{n}\left( \frac{X_i}{Y_i} \right)$$
+
+# Incluindo códigos R
+
+Para adicionar qualquer código em R, devemos iniciar com três crases, seguidas por `{r}` e para encerrar o bloco de código, devemos fechá-lo com outras três crases.  
+
+
+**Exemplos:**  
+  
+```{r pacotes}
+library(dplyr)
+library(rstatix)
+```
+
+```{r carregamento do banco de dados}
+dados <- read.csv2("Banco de Dados 6.csv")
+glimpse(dados)
+```
+  
+  
+Visualização do banco de dados (desformatado)
+```{r visualização do banco}
+head(dados, 10)
+```
+  
+Visualização em tabela (das 10 primeiras entradas)
+```{r}
+library(knitr)
+kable(head(dados, 10))
+```
+  
+Visualização em tabela (todas as entradas, separadas em páginas)
+```{r}
+library(rmarkdown)
+paged_table(dados)
+```
+  
+  
+**Opções para o "chunk":**  
+
+* `eval = FALSE`: Exclui o resultado, mas não a fórmula 
+* `echo = FALSE`: Exclui a fórmula, mas não o resultado  
+* `include = FALSE`: Exclui o resultado e a fórmula, mas o chunk ainda é rodado  
+* `message = FALSE`: Exclui as mensagens  
+* `warning = FALSE`: Exclui os avisos  
+  
+  
+Usando `eval = FALSE`:  
+```{r, eval = FALSE}
+boxplot(dados$Memoria ~ dados$Genero)
+```
+  
+  
+Usando `echo = FALSE`:  
+```{r, echo = FALSE}
+boxplot(dados$Memoria ~ dados$Alcool)
+```
+  
+  
+Usando `include = FALSE`:  
+```{r, include = FALSE}
+boxplot(dados$Memoria ~ dados$Alcool)
+```
+  
+  
+Usando `warning = FALSE` e `message = FALSE`:  
+```{r, warning = FALSE, message = FALSE}
+library(car)
+```
+
+```{r}
+leveneTest(Memoria ~ Genero, dados)
+```
+
+
+
+
+
+
+#exemplo
+```{r}
+library(MASS)
+library(ggplot2)
+
+
+# Passo 2: Carregar o conjunto de dados "survey"
+data <- universitarios2
+
+# Passo 3: Calcular o intervalo de confiança
+n <- length(survey$Age)  # Tamanho da amostra
+conf_level <- 0.95  # Nível de confiança
+
+# Calcular a média da amostra
+sample_mean <- mean(universitarios2$Idade)
+
+# Calcular o desvio padrão da amostra
+s <- sd(universitarios2$Idade)
+
+# Calcular o valor crítico t (distribuição t de Student)
+df <- n - 1  # Graus de liberdade
+t <- qt((1 + conf_level) / 2, df)
+
+# Calcular o erro padrão
+standard_error <- s / sqrt(n)
+
+# Calcular a margem de erro
+margin_of_error <- t * standard_error
+
+# Calcular o intervalo de confiança
+lower_bound <- sample_mean - margin_of_error
+upper_bound <- sample_mean + margin_of_error
+
+# Criar um data frame para o gráfico
+df_plot <- data.frame(x = c(lower_bound, upper_bound), y = c(0, 0))
+
+# Plotar o gráfico de intervalo de confiança
+ggplot() +
+  geom_density(data = universitarios2, aes(x = Idade), fill = "lightblue", alpha = 0.6) +
+  geom_line(data = df_plot, aes(x = x, y = y), color = "red", size = 2) +
+  geom_point(data = df_plot, aes(x = x, y = y), color = "red", size = 3) +
+  annotate("text", x = media, y = 0, label = "Média", vjust = 1.5, color = "black", size = 4) +
+  xlab("Idade") +
+  ylab("Densidade") +
+  ggtitle("Intervalo de Confiança para a Média da Idade") +
+  theme_minimal()
+
+```
+
+#grafico
+```{r, echo=FALSE,R.options(fig.showtext = FALSE)}
+#options(fig.showtext = FALSE)
+
+
+intervalo_confianca <- data.frame(inferior, superior)
+
+
+ggplot2:::ggplot(intervalo_confianca, aes(y = 1, x = 1)) +
+  geom_errorbar(aes(xmin = inferior, xmax = superior), width = 0.1, linewidth = 1.5) +
+  geom_point(aes(x = media, y = 1), color = "#AEC3B0", size = 3) +
+  geom_vline(xintercept = media, color = "#AEC3B0", linetype = "dashed", linewidth = 1.5) +
+  xlim(media - 1.5 * sigma, media + 1.5 * sigma) +
+  xlab("Idade") +
+  ylab("") +
+  theme_minimal()
+```
+
+
+
+
+
+
+
+
+
+```{r}
+
+# Calcular a margem de erro e o intervalo de confiança
+n <- length(universitarios2$Idade)  # Tamanho da amostra
+conf_level <- 0.95  # Nível de confiança
+
+# Calcular a média da amostra
+sample_mean <- mean(survey$Age)
+
+# Calcular o desvio padrão da amostra
+s <- sd(survey$Age)
+
+```
+
+
+```{r}
+# Exemplo de dataset com duas classes categóricas        dataset <- solucao_ou_sabao$cleaning
+
+# Transformar as classes em números
+#dataset$classe1_numerica <- as.numeric(factor(dataset$classe1, levels = c("A", "B")))
+#dataset$classe2_numerica <- as.numeric(factor(dataset$classe2, levels = c("X", "Y")))
+
+# Exibir o dataset com as classes transformadas em números
+#print(dataset)
+
+```
+
+```{r}
+# Exemplo de dataset com linhas
+
+dataset <- data.frame(ID = c(Limpeza,Saudável, Reoperação), Valor = c(c("sabao";"solução"), (1047;1077 ), (182; 141)))
+
+# Transformar linhas em colunas
+library(tidyverse)
+dataset_transformado <- dataset %>%
+  pivot_wider(names_from = ID, values_from = Valor)
+
+# Exibir o dataset transformado
+print(dataset_transformado)
+
+```
+
+
+
+
+
+```{r}
+# Exemplo de dataset com uma coluna contendo palavras
+#dataset <- data.frame(texto = c("Olá", "Mundo", "OpenAI", "Chatbot"))
+
+# Substituir a linha que contém a palavra "OpenAI" por 1
+solucao_ou_sabao$limpeza <- ifelse(grepl("saline", solucao_ou_sabao$cleaning), 1, solucao_ou_sabao$cleaning)
+
+solucao_ou_sabao
+
+```
+
+novo_datset <- subset(solucao_ou_sabao, cleaning == "saline" & regimen == "healthy")
+salina_saudáveis<- nrow(novo_datset)
+
+novo_datset2 <- subset(solucao_ou_sabao, cleaning == "saline" & regimen == "reoperation")
+salina_recupercacao <- nrow(novo_datset2)
+
+n_salina <- sum(salina_saudáveis,salina_recupercacao)
+n_salina
+  
+salina <- data_frame(salina_saudáveis,salina_recupercacao)
+
+
+
+
+
+```{r}
+#lendo o dataset
+solucao_ou_sabao <- readr::read_delim("wound (1).csv", delim = ",", show_col_types = FALSE)
+#view(solucao_ou_sabao)
+
+n_tamanho <- nrow(solucao_ou_sabao) #tamanho do dataset
+frequencia_limpeza <- table(solucao_ou_sabao)
+
+
+frequencia_limpeza <- base::data.frame(frequencia_limpeza)
+view(frequencia_limpeza)
+
+```
+
+
+```{r}
+
+```{r}
+saline <- c(healthy = 1077, reoperation = 141)
+sabao <- c(healthy = 1047, reoperation = 182)
+saude <- 1077 + 1047 
+doente<- 141 + 182
+tabelaa <- data.frame(saude, doente)
+
+# Estimativa intervalar para proporção
+prop_interval <- prop.test(tabelaa$saude, n= 2447, conf.level = 0.95)$conf.int
+
+# Estimativa intervalar para média
+mean_interval <- t.test(tabelaa$saude, conf.level = 0.95)$conf.int
+
+```
+
+

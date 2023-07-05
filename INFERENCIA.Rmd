@@ -1,0 +1,467 @@
+---
+title: "Lista de Inferência" 
+author: Bianca e Profª Elisângela Rodrigues
+date: "`r format(Sys.time(),'%d /%m/ %Y')`"
+runtime : shiny
+output: 
+  html_document:
+    code_folding: show
+    theme:
+      bg:  "#FFFBF6"
+      fg: "#7D8565"
+      primary: "#AEC3B0"
+      secondary: "#FFE0B9"
+      base_font:
+        google: Sulphur Point
+      heading_font:
+        google: Laila
+      
+---
+
+```{r setup, include=FALSE}
+if (requireNamespace("thematic")) 
+  thematic::thematic_rmd(font = "auto")
+library(lattice)
+library(knitr)
+library(xtable)
+library(MASS)
+library(kableExtra)
+library(tidyverse)
+library(dplyr)
+library(tibble)
+library(shiny)
+library(ggplot2)
+library(readr)
+
+estudantes <- MASS::survey
+
+```
+
+![](https://www.inf.ufsc.br/~andre.zibetti/probabilidade/img/estimacao.png)
+
+
+
+
+
+# 1) Encontre uma estimativa pontual da idade média do estudante universitário com os dados de amostra da pesquisa (survey)
+
+
+## Sobre o dataset Survey do pacote MASS
+
+As colunas estão detalhadas abaixo traduzidas a partir da documentação do pacote MASS:
+
+Inicialmente tendo 237 observações, foi necessário remover NA's o que resultou em 168 observações armazanadas no objeto estudante que posteriormente teve as colunas traduzidas. A descrição das colunas se encontra abaixo:
+
+* Sex / Gênero: Gênero do aluno - Feminino e Masculino.
+
+* Wr.Hnd / Mão que escreve:  Amplitude (distância da ponta do polegar à ponta do dedo mínimo da mão espalmada) da mão que escreve, em centímetros.
+
+* NW.Hnd / Mão que não escreve:  Amplitude da mão que não escreve.
+
+* W.Hnd / Esquerda ou direita: Mão de escrita do aluno - Esquerda e Direita.
+
+* Fold / Dobra: Forma como dobram os braços - Esquerda sobre direita, direita sobre esquerda, nenhum dos dois.
+
+* Pulse / Pulso: Frequência de pulso do aluno (batimentos por minuto.
+
+* Clap / Bater palmas: Qual é a mão que está em cima - Esquerda, direita, nenhuma.
+
+* Exer / Exercício: A frequência com que o aluno faz exercício - Freq(frequentemente), alguns, nenhum.
+
+* Smoke / Fumante: A quantidade de tabaco que o aluno consome - Pesado, Regular (regularmente), Ocasional(ocasionalmente), Nunca.
+
+* Height / Altura: Altura do aluno em centímetros.
+
+* M.I" / métricas ou não: Se o aluno expressou a altura em unidades imperiais (pés/polegadas) ou métricas (centímetros/metros) - Métrico, Imperial.
+
+* Age / Idade: idade do aluno em anos.
+
+
+## o que é estimativa pontual?
+
+Uma estimativa pontual é um valor numérico que é usado para estimar ou representar um parâmetro desconhecido de uma população com base em dados amostrais. Em outras palavras, é uma única estimativa numérica que é calculada a partir dos dados amostrais e é usada para fornecer uma estimativa do valor verdadeiro do parâmetro na população.
+
+A estimativa pontual é geralmente calculada como uma função dos dados da amostra e é usada como uma aproximação do valor do parâmetro de interesse na população. Por exemplo, se estamos interessados na média populacional de uma variável, como a idade, podemos usar uma estimativa pontual, como a média amostral, para fornecer uma estimativa do valor médio na população.
+
+No entanto, é importante ressaltar que uma estimativa pontual é apenas uma aproximação e pode variar de amostra para amostra. Para fornecer uma indicação da incerteza associada à estimativa pontual, é comum acompanhar a estimativa com um intervalo de confiança ou uma medida de precisão, como o erro padrão.
+
+Em resumo, uma estimativa pontual é um valor único que é calculado a partir dos dados amostrais e é usado como uma estimativa aproximada de um parâmetro desconhecido na população.
+
+### As dez primeiras observações 
+```{r renomeado}
+estudantes2 <- drop_na(estudantes) # removendo NA
+
+#dataset tendo as colunas renomeadas
+
+estudantes_traduzido <- dplyr::rename(estudantes2, c("Gênero" = "Sex",
+                                                     "Mão que escreve"="Wr.Hnd",
+                                                     "Mão que não escreve" ="NW.Hnd",
+                                                     "Esquerda ou direita"="W.Hnd",
+                                                     "Dobra"="Fold",
+                                                     "Pulso"="Pulse",
+                                                     "Bater palmas"="Clap",
+                                                     "Exercício"="Exer",
+                                                     "Fumante"="Smoke",
+                                                     "Altura"="Height",
+                                                     "métricas ou não"="M.I",
+                                                     "Idade"="Age"))
+
+#atribuindo apenas 10 linhas do dataset traduzido
+
+universitarios <- kable(head(estudantes_traduzido, n = 10, col.names = c("Gênero",
+                                                                          "Mão que escreve",
+                                                                          "Mão que não escreve",
+                                                                          "Esquerda ou direita",
+                                                                          "Dobra",
+                                                                          "Pulso",
+                                                                          "Bater palmas",
+                                                                          "Exercício",
+                                                                          "Fumante","Altura",
+                                                                          "métricas ou não",
+                                                                          "Idade")))
+#exibindo em tabela responsiva 
+
+kable_styling(universitarios, full_width = F, bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+
+
+```
+
+```{r, include=FALSE}
+
+universitarios2 <- estudantes_traduzido # atribuindo  todo o dataset traduzido
+
+idade_media <- mean(universitarios2$Idade) #média da população, quando fazemos o dataset ser a população
+```
+
+### Tabela de Tamanho, Realidade e estimativa
+```{r separando}
+
+# Definindo a proporção para a amostra (70% do dataset)
+proporcao_amostra <- 0.7
+
+# Definindo a sequência de números pseudoaleatórios para reprodução
+set.seed(123)
+
+# Obtendo o número total de observações
+n_observacoes <- nrow(universitarios2)
+
+# Calcular o tamanho da amostra
+tamanho_amostra <- round(proporcao_amostra * n_observacoes)
+
+# Gerar índices aleatórios para a amostra
+indices_amostra <- sample(1:n_observacoes, size = tamanho_amostra, replace = FALSE)
+
+# Separar a população e a amostra com base nos índices gerados
+populacao <- universitarios2
+amostra <- universitarios2[indices_amostra,]
+
+
+tamanho_pop <- nrow(populacao) #Tamanho da população
+tamanho_amostra<- nrow(amostra)   #Tamanho da amostra
+
+estimativa_amostra <- mean(amostra$Idade) #estimativa da amostra
+
+
+tamanhos <- tibble(
+  "Tamanho População" = tamanho_pop,
+  "Tamanho Amostra" = tamanho_amostra,
+  "Média População" = idade_media,
+  "Estimativa da amostra" = estimativa_amostra)
+
+
+tamanhos <- kable(tamanhos, col.names = c("Tamanho População", "Tamanho Amostra", "Média População","Estimativa da amostra"))
+
+#exibindo em tabela responsiva 
+
+kable_styling(tamanhos, full_width = F, bootstrap_options = c("striped", "hover", "condensed", "responsive", color =" #AEC3B0"))
+```
+
+# 2) Assuma o desvio padrão da população, σ, da idade do aluno nos dados da pesquisa é 7. Encontre a margem de erro e a estimativa de intervalo com nível de confiança de 95%.
+
+### Considerando o dataset como amostra
+```{r}
+
+# Calcular a margem de erro e o intervalo de confiança
+sigma <- 7  # Desvio padrão da população
+n <- length(universitarios2$Idade)  # Tamanho da amostra
+conf <- 0.95  # Nível de confiança
+
+# Calcular o valor crítico Z
+z <- qnorm((1 + conf) / 2)
+
+# Calcular a margem de erro
+erro <- z * (sigma / sqrt(n))
+
+# Calcular o intervalo de confiança
+inferior <- mean(universitarios2$Idade) - erro
+superior <- mean(universitarios2$Idade) + erro
+
+media <- mean(universitarios2$Idade)
+
+#organizando
+
+tabela_intervalo <- tibble(
+  "Erro" = erro,
+  "Intervalo Inferior" = inferior,
+  "Intervalo Superior" = superior,
+  "Média" = media)
+
+
+tabela_intervalo <- kable(tabela_intervalo, col.names = c("Erro", "Intervalo Inferior", "Intervalo Superior", "Média"))
+
+kable_styling(tabela_intervalo, full_width = F, bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+
+
+```
+
+### Considerando o dataset como a população
+ 
+```{r, message=FALSE, warning=FALSE, include=FALSE}
+# Com o dataset sendo a população
+
+
+# Calcular a margem de erro e o intervalo de confiança
+sigma <- 7  # Desvio padrão da população
+n <- length(amostra$Idade)  # Tamanho da amostra
+conf <- 0.95  # Nível de confiança
+
+# Calcular o valor crítico Z
+z <- qnorm((1 + conf) / 2)
+
+# Calcular a margem de erro
+erro_amostra <- z * (sigma / sqrt(n))
+
+# Calcular o intervalo de confiança
+inferior_amostra <- mean(amostra$Idade) - erro_amostra
+superior_amostra <- mean(amostra$Idade) + erro_amostra
+
+media_amostra <- mean(universitarios2$Idade)
+
+#organizando
+
+tabela_intervalo2 <- tibble(
+  "Erro" = erro_amostra,
+  "Intervalo Inferior" = inferior_amostra,
+  "Intervalo Superior" = superior_amostra,
+  "Média" = media_amostra)
+
+
+tabela_intervalo2 <- kable(tabela_intervalo2, col.names = c("Erro", "Intervalo Inferior", "Intervalo Superior", "Média Amostra"))
+
+kable_styling(tabela_intervalo2, full_width = F, bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+
+```
+
+# 3) Sem assumir o desvio padrão da população, σ, da idade do aluno na pesquisa, encontre a margem de erro e a estimativa do intervalo com nível de confiança de 95%.
+
+```{r}
+
+# Calcular o valor crítico t (distribuição t de Student)
+graus <- n - 1  # Graus de liberdade
+t <- qt((1 + conf) / 2, graus)
+
+# Calcular o erro padrão
+erro_padrao <- sigma / sqrt(n)
+
+# Calcular a margem de erro
+erro_margem <- t * erro_padrao
+
+# Calcular o intervalo de confiança
+inferior3 <- media - erro_margem
+superior3 <- media + erro_margem
+
+
+#organizando
+
+tabela_intervalo3 <- tibble(
+  "Erro padrão" = erro_padrao,
+  "Intervalo Inferior" = inferior3,
+  "Intervalo Superior" = superior3,
+  "Média" = media)
+
+
+tabela_intervalo3 <- kable(tabela_intervalo3, col.names = c("Erro padrão", "Intervalo Inferior", "Intervalo Superior", "Média"))
+
+kable_styling(tabela_intervalo3, full_width = F, bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+
+```
+
+
+# 4) Melhore a qualidade de uma pesquisa amostral aumentando o tamanho da amostra com desvio padrão desconhecido, σ.
+
+```{r}
+
+# Calcular o desvio padrão desconhecido (σ) de uma variável específica
+sigma <- sd(universitarios2$Idade)
+
+# Definir a precisão desejada (E) - por exemplo, 2 anos
+E <- 2
+
+# Definir o valor crítico correspondente ao nível de confiança desejado
+Z <- qnorm(0.975)  # Intervalo de confiança de 95%
+
+# Calcular o tamanho da amostra necessário
+n <- ceiling((Z * sigma / E)^2)
+
+Tamanho_necessário <- tibble(
+  "Tamanho da amostra necessário" = n)
+
+
+Tamanho_necessário <- kable(Tamanho_necessário, col.names = "Tamanho da amostra necessário")
+
+kable_styling(Tamanho_necessário, full_width = F, bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+
+```
+
+
+# 5) Suponha que você não tenha uma estimativa de proporção planejada, encontre o tamanho da amostra necessário para atingir uma margem de erro de 5% para a pesquisa de estudantes do sexo masculino com um nível de confiança de 95%.
+
+Para encontrar o tamanho da amostra necessário para atingir uma margem de erro de 5% em uma pesquisa de estudantes do sexo masculino, quando você não tem uma estimativa de proporção planejada, você pode usar a fórmula do tamanho da amostra para proporção. A fórmula geral é:
+
+n2 = (Z^2 * p * (1-p)) / E^2
+
+Onde:
+- n é o tamanho da amostra necessário
+- Z é o valor crítico correspondente ao nível de confiança desejado (por exemplo, 1,96 para um intervalo de confiança de 95%)
+- p é uma estimativa conservadora da proporção (assumindo 0,5 para obter o tamanho máximo da amostra)
+- E é a margem de erro desejada (porcentagem)
+
+Agora, vamos aplicar essa fórmula ao dataset "survey" do pacote MASS, considerando apenas os estudantes do sexo masculino.
+
+```{r}
+
+
+# Filtrar apenas os estudantes do sexo masculino
+male_students <- subset(universitarios2, Gênero == "Male")
+
+# Calcular a proporção conservadora (p) assumindo 0,5
+p <- 0.5
+
+# Definir a margem de erro desejada (E) como 5%
+E <- 0.05
+
+# Definir o valor crítico correspondente ao nível de confiança desejado
+Z <- qnorm(0.975)  # Intervalo de confiança de 95%
+
+# Calcular o tamanho da amostra necessário
+n2 <- ceiling((Z^2 * p * (1-p)) / E^2)
+
+Tamanho_necessário2 <- tibble(
+  "Tamanho da amostra necessário" = n2)
+
+
+Tamanho_necessário2 <- kable(Tamanho_necessário2, col.names = "Tamanho da amostra necessário")
+
+kable_styling(Tamanho_necessário2, full_width = F, bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+ filtramos o dataset para incluir apenas os estudantes do sexo masculino. Em seguida, definimos a estimativa conservadora da proporção (p) como 0,5, assumindo que não temos uma estimativa precisa da proporção de estudantes do sexo masculino na população.
+
+A margem de erro desejada (E) é definida como 5% (0,05) e o valor crítico (Z) é calculado usando a função `qnorm()` com base no nível de confiança desejado (0,975 para um intervalo de confiança de 95%).
+
+Por fim, calculamos o tamanho da amostra necessário (n2) usando a fórmula do tamanho da amostra para proporção e arredondamos para o próximo número inteiro usando a função `ceiling()`.
+
+
+# Extra: Considerando o link abaixo, escolha uma base de dados; escolha pelo menos duas variáveis e encontre estimativas intervalares considerando pelo menos dois estimadores ou estatísticas. Além disso, construa um gráfico de intervalos de confiança de uma amostra simulada com base nas variáveis escolhidas garantindo que pelo menos um deles contenha o verdadeiro valor dos parâmetros para cada uma das amostra.
+
+[Dataset sobre ferimentos](https://openintro.org/book/statdata/index.php?data=wound)
+
+Intervalos de confiança
+```{r}
+ferimentos<- read_delim("ferimentos - Página1.csv", delim = ",", show_col_types = FALSE)
+
+
+salina_s <- 1077
+salina_r <- 141
+n_salina <- 1218
+sabao_s <- 1047
+sabao_r <- 182
+sabao_total <- 1229
+n_tamanho <- 2447
+
+# Intervalo de confiança para a média (95% de confiança)
+media_salina <- salina_s / n_salina
+media_sabao <- sabao_s / sabao_total
+desvio_padrao_salina <- sqrt(media_salina * (1 - media_salina) / n_salina)
+desvio_padrao_sabao <- sqrt(media_sabao * (1 - media_sabao) / sabao_total)
+z_valor <- qnorm(0.975)  # Valor crítico para um intervalo de confiança de 95%
+
+# Intervalo de confiança para a média da salina
+margem_erro_salina <- z_valor * desvio_padrao_salina
+intervalo_confianca_salina_inferior <- media_salina - margem_erro_salina
+intervalo_confianca_salina_superior <- media_salina + margem_erro_salina
+
+# Intervalo de confiança para a média do sabão
+margem_erro_sabao <- z_valor * desvio_padrao_sabao
+intervalo_confianca_sabao_inferior <- media_sabao - margem_erro_sabao
+intervalo_confianca_sabao_superior <- media_sabao + margem_erro_sabao
+
+
+#organizando
+
+tabela_intervalo2 <- tibble(
+  "Intervalo Salina Inferior" = intervalo_confianca_salina_inferior,
+  "Intervalo Salina superior" = intervalo_confianca_salina_superior,
+  "Intervalo Sabão Inferior" = intervalo_confianca_sabao_inferior,
+  "Intervalo Sabão Superior" = intervalo_confianca_sabao_superior)
+
+
+tabela_intervalo2 <- kable(tabela_intervalo2, col.names = c("Intervalo Salina Inferior", "Intervalo Salina superior", "Intervalo Sabão Inferior", "Intervalo Sabão Superior"))
+
+kable_styling(tabela_intervalo2, full_width = F, bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+
+```
+
+```{r}
+# Intervalo de confiança para a proporção (95% de confiança)
+proporcao_salina <- salina_s / n_salina
+proporcao_sabao <- sabao_s / sabao_total
+margem_erro_proporcao_salina <- z_valor * sqrt((proporcao_salina * (1 - proporcao_salina)) / n_salina)
+margem_erro_proporcao_sabao <- z_valor * sqrt((proporcao_sabao * (1 - proporcao_sabao)) / sabao_total)
+intervalo_confianca_proporcao_salina_inferior <- proporcao_salina - margem_erro_proporcao_salina
+intervalo_confianca_proporcao_salina_superior <- proporcao_salina + margem_erro_proporcao_salina
+intervalo_confianca_proporcao_sabao_inferior <- proporcao_sabao - margem_erro_proporcao_sabao
+intervalo_confianca_proporcao_sabao_superior <- proporcao_sabao + margem_erro_proporcao_sabao
+
+#organizando
+
+tabela_intervalo2 <- tibble(
+  "Intervalo Proporção Salina Inferior" = intervalo_confianca_proporcao_salina_inferior,
+  "Intervalo Proporção Salina superior" = intervalo_confianca_proporcao_salina_superior,
+  "Intervalo Proporção Sabão Inferior" = intervalo_confianca_proporcao_sabao_inferior,
+  "Intervalo Proporção Sabão Superior" = intervalo_confianca_proporcao_sabao_superior)
+
+
+tabela_intervalo2 <- kable(tabela_intervalo2, col.names = c("Intervalo Proporção Salina Inferior", "Intervalo Proporção Salina superior", "Intervalo Proporção Sabão Inferior", "Intervalo Proporção Sabão Superior"))
+
+kable_styling(tabela_intervalo2, full_width = F, bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+
+
+```{r, message=FALSE, warning=FALSE}
+amostra_simulada <- data.frame(Estimador = c("Média Salina", "Média Sabão", "Proporção Salina", "Proporção Sabão"),
+                              Inferior = c(intervalo_confianca_salina_inferior, intervalo_confianca_sabao_inferior, intervalo_confianca_proporcao_salina_inferior, intervalo_confianca_proporcao_sabao_inferior),
+                              Superior = c(intervalo_confianca_salina_superior, intervalo_confianca_sabao_superior, intervalo_confianca_proporcao_salina_superior, intervalo_confianca_proporcao_sabao_superior))
+
+# Gráfico de intervalos de confiança
+ggplot(amostra_simulada, aes(x = Estimador, y = (Inferior + Superior) / 2)) +
+  geom_pointrange(aes(ymin = Inferior, ymax = Superior)) +
+  ylim(min(amostra_simulada$Inferior) - 0.05, max(amostra_simulada$Superior) + 0.05) +
+  xlab("Estimador") +
+  ylab("Valor") +
+  ggtitle("Intervalos de Confiança") +
+  theme_bw()
+
+```
+
+ A taxa de reoperação foi maior no grupo de sabão do que no grupo de solução salina, portanto, a solução salina se mostrou mais eficiente com uma  95% de confiança
+
+
+
+
+
+
+
+
+

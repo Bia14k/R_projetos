@@ -1,0 +1,122 @@
+---
+title: ""
+date: "`r Sys.Date()`"
+output:
+  rmdformats::downcute:
+    self_contained: true
+    default_style: "light"
+    downcute_theme: "default"
+    
+---
+
+
+```{r setup, include=FALSE}
+library(lattice)
+library(knitr)
+library(xtable)
+library(MASS)
+library(kableExtra)
+library(tidyverse)
+library(dplyr)
+
+estudantes <- MASS::survey
+```
+
+#### 1) Encontre uma estimativa pontual da idade média do estudante universitário com os dados de amostra da pesquisa (survey)
+
+Sex / Gênero: Gênero do aluno - Feminino e Masculino.
+
+Wr.Hnd / Mão que escreve:  Amplitude (distância da ponta do polegar à ponta do dedo mínimo da mão espalmada) da mão que escreve, em centímetros.
+
+NW.Hnd / Mão que não escreve:  Amplitude da mão que não escreve.
+
+W.Hnd / Esquerda ou direita: Mão de escrita do aluno - Esquerda e Direita.
+
+Fold / Dobra: Forma como dobram os braços - Esquerda sobre direita, direita sobre esquerda, nenhum dos dois.
+
+Pulse / Pulso: Frequência de pulso do aluno (batimentos por minuto.
+
+Clap / Bater palmas: Qual é a mão que está em cima - Esquerda, direita, nenhuma.
+
+Exer / Exercício: A frequência com que o aluno faz exercício - Freq(frequentemente), alguns, nenhum.
+
+Smoke / Fumante: A quantidade de tabaco que o aluno consome - Pesado, Regular (regularmente), Ocasional(ocasionalmente), Nunca.
+
+Height / Altura: Altura do aluno em centímetros.
+
+M.I" / métricas ou não: Se o aluno expressou a altura em unidades imperiais (pés/polegadas) ou métricas (centímetros/metros) - Métrico, Imperial.
+
+Age / Idade: idade do aluno em anos.
+
+
+```{r}
+library(shiny)
+
+# Definir o número total de chunks
+total_chunks <- 3
+
+# Criar as abas
+for (i in 1:total_chunks) {
+  cat(paste0("### Chunk ", i, "\n\n"))
+  cat(paste0("```{r}\n"))
+  cat(paste0(estudantes2 <- drop_na(estudantes), # removendo NA
+
+estudantes_traduzido <- dplyr::rename(estudantes2, c("Gênero" = "Sex",
+                                                     "Mão que escreve"="Wr.Hnd",
+                                                     "Mão que não escreve" ="NW.Hnd",
+                                                     "Esquerda ou direita"="W.Hnd",
+                                                     "Dobra"="Fold",
+                                                     "Pulso"="Pulse",
+                                                     "Bater palmas"="Clap",
+                                                     "Exercício"="Exer",
+                                                     "Fumante"="Smoke",
+                                                     "Altura"="Height",
+                                                     "métricas ou não"="M.I",
+                                                     "Idade"="Age")),
+                                                     
+universitarios <- kable(head(estudantes_traduzido, n = 10, col.names = c("Gênero",
+                                                                          "Mão que escreve",
+                                                                          "Mão que não escreve",
+                                                                          "Esquerda ou direita",
+                                                                          "Dobra",
+                                                                          "Pulso",
+                                                                          "Bater palmas",
+                                                                          "Exercício",
+                                                                          "Fumante","Altura",
+                                                                          "métricas ou não",
+                                                                          "Idade"))),
+kable_styling(universitarios, full_width = F, bootstrap_options = c("striped", "hover", "condensed","responsive")), i, " \n"))
+  cat(paste0("```\n\n"))
+}
+
+```
+
+#### 2) Assuma o desvio padrão da população, σ, da idade do aluno nos dados da pesquisa é 7. Encontre a margem de erro e a estimativa de intervalo com nível de confiança de 95%.
+
+#### 3) Sem assumir o desvio padrão da população, σ, da idade do aluno na pesquisa, encontre a margem de erro e a estimativa do intervalo com nível de confiança de 95%.
+
+##### 4) Melhore a qualidade de uma pesquisa amostral aumentando o tamanho da amostra com desvio padrão desconhecido, σ.
+
+5) Suponha que você não tenha uma estimativa de proporção planejada, encontre o tamanho da amostra necessário para atingir uma margem de erro de 5% para a pesquisa de estudantes do sexo masculino com um nível de confiança de 95%.
+
+#Extra: Considerando o link abaixo, escolha uma base de dados; escolha pelo menos duas variáveis e encontre estimativas intervalares considerando pelo menos dois estimadores ou estatísticas. Além disso, construa um gráfico de intervalos de confiança de uma amostra simulada com base nas variáveis escolhidas garantindo que pelo menos um deles contenha o verdadeiro valor dos parâmetros para cada uma das amostra.
+
+
+```{r}
+library(ggplot2)
+
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point() + geom_smooth()
+```
+
+### lattice
+
+```{r}
+lattice::show.settings()
+```
+
+### base
+
+```{r}
+plot(pressure, col = thematic::thematic_get_option("accent"))
+```
